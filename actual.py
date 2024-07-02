@@ -8,61 +8,61 @@ from tkinter import filedialog
 
 #from PIL import ImageTk, Image
 
-def enstrfolder():
-    folder_path_var = tk.StringVar()
-    prompt1_var = tk.StringVar()
-    prompt2_var = tk.StringVar()
-    prompt3_var = tk.StringVar()
-    prompt4_var = tk.StringVar()
-    prompt5_var = tk.StringVar()
-    status_var = tk.StringVar()
 
 
+def browse_folders():
+    os.chdir(filedialog.askdirectory())
 def dothesearch():
     browse_folders
-    files = os.listdir(os.getcwd)
+    #files = os.listdir(os.getcwd)
     #for file in files: #split the filename apart
         #if
 
 root = Tk()
-# create mainwin window
-#mainwin = ttk.Frame(height=1000, width=1000, bg='purple')
-#mainwin.title("DECIDE")
-#mainwin.geometry('1000x1000')
-#mainwin.state('zoomed')
-#, background = 'BLACK'
-#searchwin = ttk.Frame(mainwin)
-#searchwin.pack()
-#searchwin.place(x=20, y=20)
 
-searchbar = ttk.Entry()
-
-nestedgrid = Frame()
+topoptionsgrid = Frame()
+nestedgrid = Frame(width=800, height=500)
 for r in range(2):
     for c in range(10):
-        Button(nestedgrid, borderwidth=1).grid(row=r, column=c, ipadx=60, ipady=35)
-
+        Button(topoptionsgrid, borderwidth=1).grid(row=r, column=c, ipadx=60, ipady=35)
 nestedsearch = Frame()
-for r in range(5):
-    for c in range(1):
-        Entry(nestedsearch, borderwidth=1).grid(row=r, column=c, ipadx=60, ipady=35)
+nestedoptions = Frame()
+def printitf():
+    pretag=etag1.get()
+    print(pretag)
+etag1 = tk.Entry(nestedsearch, width=30)
+etag2 = tk.Entry(nestedsearch, width=30)
+etag3 = tk.Entry(nestedsearch, width=30)
+etag4 = tk.Entry(nestedsearch, width=30)
+etag5 = tk.Entry(nestedsearch, width=30)
+for c in sorted(nestedsearch.children):
+    nestedsearch.children[c].pack()
+the_button = Button(nestedsearch, text="Do the search", command=printitf)
+the_button.pack()
 
 for r in range(1):
     for c in range(1):
         #Button(root).grid(row=r, column=c)
-        Button(root, padx=100, pady=70, text=str("options1"), borderwidth=3).grid(row=0, column=0)
-        nestedgrid.grid(row=0, column=1)
-        nestedsearch.grid(row=1, column=0)
-        Button(root, padx=700, pady=300, text=str("picgrid"), borderwidth=3).grid(row=1, column=1)
-        Button(root, padx=100, pady=30, text=str("err"), borderwidth=3).grid(row=2, column=0)
-        Button(root, padx=400, pady=30, text=str("err"), borderwidth=3).grid(row=2, column=1)
+        Button(root, padx=100, pady=70, text=str("options1"), borderwidth=3).grid(row=0, column=0) #tba
+        topoptionsgrid.grid(row=0, column=1) #top options
+        nestedsearch.grid(row=1, column=0) #tag entering
+        nestedgrid.grid(row=1, column=1)#image view
+        Button(root, padx=100, pady=30, text=str("err"), borderwidth=3).grid(row=2, column=0) #tba
+        nestedoptions.grid(row=2, column=1) #L/R
 
+def makeagrid():
+    for r in range(5):
+        for c in range(8):
+            Button(nestedgrid, text=str("1")).grid(row=r, column=c, ipadx=50, ipady=50) #tba
+def thenclosegrid():
+    for r in range(5):
+        for c in range(8):
+            Button(nestedgrid, text=str("2")).grid(row=r, column=c, ipadx=50, ipady=50) #tba
 
-#entered_tag = ttk.StringVar()
-#gosearch = ttk.Button(searchwin, text="do the search", command = dothesearch)
-
-#searchbar.grid(row = 0, column = 0, sticky=W)
-#gosearch.grid(row = 1, column = 0, sticky=W)
+opengridbutton = Button(nestedoptions, text="open grid", borderwidth=2, command=makeagrid)
+opengridbutton.pack()
+closegridbutton = Button(nestedoptions, text="close grid", borderwidth=2, command=thenclosegrid)
+closegridbutton.pack()
 
 #def rescalepic(imgdim):
 #    eitherdim = [50]
@@ -124,8 +124,6 @@ def testgrid():
 ###############
 # tag sorting #
 ###############
-def browse_folders():
-    os.chdir(filedialog.askdirectory())
 
 def sort_tags(splitthis):
     splitthis, file_ext = os.path.splitext(splitthis)
@@ -167,16 +165,15 @@ def checkfiletype(fname):
 # grid stuff #
 ##############
 
-#thiswidget.bind('<Button-1>', clicktoselect)
-
-def clickgrid(x, y, selected, specgrid):
-    backcolour = "dark slate gray"
-    selected.widget.config(bg = backcolour) #need to make thumbnail 90x90
-    specgrid[x][y] = backcolour
-    #filena = #get string from clicking widget, but has to be specific grid box
+#certainwidget.bind('<Button-1>', clicktoselect)
     
 def unselectgrid(x, y, selected, specgrid):
-    backcolour = "gray"
+    if clickcount == 0:
+        backcolour = "gray"
+        clickcount = 1
+    else:
+        backcolour = "dark slate gray"
+        clickcount = 0
     selected.widget.config(bg = backcolour) #need to make thumbnail 90x90
     specgrid[x][y] = backcolour
     #filena = #get string from clicking widget, but has to be specific grid box
@@ -209,9 +206,5 @@ def addtogrid(rightfiles): #for adding pics to the grid
                 curr_max_page += 1
     #когда будет достигнуто 40, перейдите к совершенно новому виджету
 
-#for file in os.listdir(r"C:\Users\succy\Documents\TKinter"):
-#    if file.endswith(r".txt"):
-#        print(file)
-        
-# Tkinter event loop
+
 root.mainloop()
