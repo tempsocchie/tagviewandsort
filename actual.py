@@ -10,48 +10,59 @@ from tkinter.ttk import *
 
 root = Tk() ############################################################################################################
 root.state('zoomed')
-
-rightfiles = []
 archived = []
+rightfiles = []
 suffix = ("jpg", "png", "gif")
 
 ###############
 # tag sorting #
 ###############
 
+def doublechecktags(thetag, tagssplitfrom):
+    print("DCT1 ",tagssplitfrom)
+    print("DCT2 ",thetag)
+    if thetag not in tagssplitfrom:
+        if thetag != "":
+            thetag ="_"+thetag
+            tagssplitfrom.append(thetag)
+            print("before",temptaglist)
+
 def sort_tags(splitthis):
+    global temptaglist
+    temptaglist=[]
     splitthis, file_ext = os.path.splitext(splitthis)
-    splitted, filenumber = splitthis.split("-")
-    sortedfile = sorted(splitted.split("_"))
-    splitted = '_'.join(sortedfile) + "-" + filenumber + file_ext
+    if splitthis.endswith('z'):
+        tagssplitfrom, filenumber = splitthis.split("-")
+        tagssplitfrom = tagssplitfrom.split("_")
+        for tags in tagstoadd:
+            print(tagssplitfrom)
+            doublechecktags(tags, tagssplitfrom)
+            print("after",temptaglist)
+    else:
+        tagssplitfrom = splitthis
+        filenumber = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+"z"
+    print(temptaglist)
+    tagssplitfrom.sort()
+    stringedlist = "".join(tagssplitfrom)
+    global reformedfilename
+    reformedfilename = stringedlist + "-" + filenumber + file_ext
 
-def rename_files_prompt(): #needs to be the 5 boxes
-    folder_path = filedialog.askdirectory()
-    files = os.listdir(folder_path)
-    filecount = 0
-    new_folder_path = os.path.join(folder_path, "Renamed_Files")
+def rename_files_prompt():
+    print("general")
+    new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    for file in files:
-        if file.endswith(suffix):
-        #if os.path.isfile(os.path.join(folder_path, file)):
-            file_name, file_ext = os.path.splitext(file)
-            # что, если только 3 тега используются с символом «_» между
-            new_file_name = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
-            new_file_name = f"{tag1}_{tag2}_{tag3}_{tag4}_{tag5}-{new_file_name}{file_ext}"
-            new_file_path = os.path.join(new_folder_path, new_file_name)
-            os.rename(os.path.join(folder_path, file), new_file_path)
-            filecount += 1
-    print(filecount)
-
-def checkfiletype(fname):
-    suffix = ("jpg", "png", "gif")
-    rightfiles = []
-    if fname.endswith(suffix):
-        rightfiles.append()
+    tagassign()
     print(rightfiles)
+    tags = '_'.join(tagstoadd)
+    for file in rightfiles:
+        if file.endswith(suffix):
+            file_name = tags+file
+            new_file_path = os.path.join(new_folder_path, file_name)
+            os.rename(os.path.join(thisfolder, file), new_file_path)
+
+
 #select folder for finding the right files (unsorted pics)
 def dothesearch():
-    filecount=0
     global thisfolder
     thisfolder = os.path.abspath(filedialog.askdirectory())
     files = os.listdir(thisfolder)
@@ -59,50 +70,87 @@ def dothesearch():
         file_path = os.path.join(thisfolder, file)
         if file.endswith(suffix):
             rightfiles.append(file)
+            print(rightfiles, "here")
             archived.append(file_path)
-            filecount+=1
 
 def renameselected():
+    tagassign()
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    print(templist)
+    #newpage.forget()
+
     for file in templist:
+        sort_tags(file)
+        new_file_path = os.path.join(thisfolder, reformedfilename)
+        print(new_file_path)
+        os.rename(os.path.join(thisfolder, file), new_file_path)
+    buttonnames.clear()
+    #makegridframe()
+    #for rowx in range(9):
+    #    for coly in range(7):
+    #        Button(newpage).grid(row=rowx, column=coly, ipadx=50, ipady=50)
+    templist.clear()
+
+def originalrenameselected(): ###perhaps to be unused
+    tagassign()
+    new_folder_path = os.path.join(thisfolder, "Renamed_Files")
+    os.makedirs(new_folder_path, exist_ok=True)
+    #newpage.forget()
+
+    for file in templist:
+        sort_tags(file)
         file_name, file_ext = os.path.splitext(file)
         # что, если только 3 тега используются с символом «_» между
-        new_file_name = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(5))
-        new_file_name = f"{tag1}_{tag2}_{tag3}_{tag4}_{tag5}-{new_file_name}{file_ext}"
-        new_file_path = os.path.join(new_folder_path, new_file_name)
+        new_file_name = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))
+        new_file_path = os.path.join(thisfolder, new_file_name)
         os.rename(os.path.join(thisfolder, file), new_file_path)
+    buttonnames.clear()
+    #makegridframe()
+    #for rowx in range(9):
+    #    for coly in range(7):
+    #        Button(newpage).grid(row=rowx, column=coly, ipadx=50, ipady=50)
+    templist.clear()
+
+def makegridframe():
+    print("ye")
+    global newpage
+    currentpage = 1
+    newpage = "page"+str(currentpage)
+    newpage = Frame(nestedgrid)
+    newpage.pack()
+
 
 #for adding pics to the grid
 def taddtogrid():
-    dothesearch()
+    tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
+    newtestbutton = Button(buttonoptions, text="spec tagging", command=renameselected)
+    newtestbutton.grid(row=3, column=0, sticky='we')
+    #makegridframe()
     rowx = 0
     coly = 0
-    for rowx in range(9):
-        for coly in range(9):
-            if len(rightfiles) != 0:
-                #thatphoto=rightfiles[0],thephoto=Image.open(thatphoto),thisphoto = PhotoImage(thephoto)
-                rightfiles[0]=Button(nestedgrid, command=lambda m=rightfiles[0]: gettestcoords(m), text=rightfiles[0]).grid(row=rowx, column=coly,sticky='nsew')
-                rightfiles.pop(0)
-            else:
-                Button(nestedgrid).grid(row=rowx,column=coly,ipadx=50,ipady=50)
-            #key = str(gridpage+"-"+rowx+coly)
-            #archivedfilepaths[key] = filana
-            coly += 1
+    if len(rightfiles) > 0:
+        for rowx in range(9):
+            for coly in range(9):
+                if len(rightfiles) != 0:
+                    thetext = rightfiles[0]
+                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), text=thetext).grid(row=rowx, column=coly, ipady=50,sticky='nsew')
+                    rightfiles.pop(0)
+                else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=50,ipady=50)
+                coly += 1
         rowx += 1
         coly = 0
-    newtestbutton = Button(buttonoptions, text="woo", command=renameselected)
-    newtestbutton.grid(row=3, column=0, sticky='we')
-    global newtesttbutton
+        if rowx == 10:
+            if len(rightfiles) != 0:
+                rowx = 0
+                currentpage += 1
 
 def addtogrid(): #original
     #while len(rightfiles) > 0:
     rowx = 0
     coly = 0
     for file in rightfiles:
-        while rowx < 5:
-            while coly < 8:
+        while rowx < 9:
+            while coly < 7:
                 filana = str(file) #should do that at least reference
                 filep1 = Image.open(str(rightfiles.pop()))
                 rightfiles.remove(file)
@@ -129,32 +177,14 @@ testarchived={}
 buttonnames=[]
 templist = []
 
-def gettestcoords(button_press):
-    templist.append(button_press)
-    print(templist)
-
-class makebuttons:
-    def __init__(self, parent, name, brow, bcol): #filename, pathway
-        self.parent = parent
-        self.name = name
-        #self.filename = filename
-        #self.pathway = pathway
-        Button(nestedgrid, command=lambda m=name: gettestcoords(m), text=name).grid(row=brow, column=bcol, ipadx=50, ipady=50)
-
 def makeagrid():
     testlist = []
-    for tr in range(8):
-        for tc in range(10):
+    for tr in range(9):
+        for tc in range(7):
             currentbutton = ("p1"+str(tr)+str(tc))
             testlist.append(currentbutton)
-            currentbutton = Button(nestedgrid, command=lambda m=currentbutton: gettestcoords(m), text=currentbutton)
+            currentbutton = Button(newpage, command=lambda m=currentbutton: gettestcoords(m), text=currentbutton)
             currentbutton.grid(row=tr, column=tc, ipadx=50, ipady=50)
-
-def thenclosegrid():
-    for tr in range(8):
-        for tc in range(9):
-            currentbutton = ("p2"+str(tr)+str(tc))
-            makebuttons(nestedgrid, currentbutton, tr, tc)
 
 nestedgrid = Frame(width=800, height=500)
 nestedgrid.pack(side=RIGHT)
@@ -172,24 +202,39 @@ for c in sorted(searchbar.children):
 buttonoptions = Frame(searchbar)
 buttonoptions.pack()
 
+def clearpreviousname():
+    new_folder_path = os.path.join(thisfolder, "Renamed_Files")
+    os.makedirs(new_folder_path, exist_ok=True)
+    print(rightfiles)
+    for file in rightfiles:
+        filename, file_ext = os.path.splitext(file)
+        if (len(filename)!=6 or filename[-6] != '-' or filename[-1] != 'z'):
+            print("else", filename)
+            filename = '-'+''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+'z'
+            filename = filename+file_ext
+            new_file_path = os.path.join(new_folder_path, filename)
+            os.rename(os.path.join(thisfolder, file), new_file_path)
+    rightfiles.clear()
+
 def tagassign():
+    print("tagged")
+    global tagstoadd
+    tagstoadd = []
     global tag1, tag2, tag3, tag4, tag5
     tag1, tag2, tag3, tag4, tag5 = etag1.get(), etag2.get(), etag3.get(), etag4.get(), etag5.get()
+    tagstoadd.extend([tag1, tag2, tag3, tag4, tag5])
+
 
 ### the actual buttons ###
 for r in range(5):
     for c in range(2):
-        tk.Button(buttonoptions, text="Do the search", command=dothesearch).grid(row=0, column=0, sticky='we')
-        tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
-        tk.Button(buttonoptions, text="make an grid", command=makeagrid).grid(row=1, column=0, sticky='we')
-        tk.Button(buttonoptions, text="set folder", command=lambda: print(rightfiles)).grid(row=1, column=1, sticky='we')
-        tk.Button(buttonoptions, text="add to grid", command=taddtogrid).grid(row=2, column=0, sticky='we')
-        tk.Button(buttonoptions, text="assign", command=rename_files_prompt).grid(row=2, column=1, sticky='we')
+        tk.Button(buttonoptions, text="gen folder to grid", command=lambda:[dothesearch(),taddtogrid()]).grid(row=0, column=0, sticky='we')
+        #tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
+        tk.Button(buttonoptions, text="make plain grid", command=makeagrid).grid(row=1, column=0, sticky='we')
+        tk.Button(buttonoptions, text="tag all files", command=lambda:[dothesearch(),rename_files_prompt()]).grid(row=1, column=1, sticky='we')
+        tk.Button(buttonoptions, text="clear name", command=lambda:[dothesearch(),clearpreviousname()]).grid(row=2, column=0, sticky='we')
+        tk.Button(buttonoptions, text="unused", command=lambda:[print(rightfiles)]).grid(row=2, column=1, sticky='we')
         tk.Button(buttonoptions).grid(row=r, column=c, sticky='we')
-### empty image base grid ###
-#for r in range(8):
-#    for c in range(10):
-#        Button(nestedgrid, text="000", fg='white').grid(row=r, column=c, ipadx=50, ipady=50)
 #def rescalepic(imgdim):
 #    eitherdim = [50]
 #    for smallerdim in eitherdim:
