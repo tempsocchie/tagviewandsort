@@ -5,27 +5,28 @@ from tkinter import *
 import tkinter as tk
 import tkinter as ttk
 from tkinter import filedialog
-#from PIL import ImageTk, Image
+from PIL import ImageTk, Image
 from tkinter.ttk import *
 
 root = Tk() ############################################################################################################
 root.state('zoomed')
 archived = []
 rightfiles = []
-suffix = ("jpg", "png", "gif")
+suffix = ("jpg", "png", "gif", "ppm", "pgm")
+
+def gettestcoords(button_press):
+    templist.append(button_press)
+    print(button_press)
 
 ###############
 # tag sorting #
 ###############
 
 def doublechecktags(thetag, tagssplitfrom):
-    print("DCT1 ",tagssplitfrom)
-    print("DCT2 ",thetag)
     if thetag not in tagssplitfrom:
         if thetag != "":
             thetag ="_"+thetag
             tagssplitfrom.append(thetag)
-            print("before",temptaglist)
 
 def sort_tags(splitthis):
     global temptaglist
@@ -35,24 +36,19 @@ def sort_tags(splitthis):
         tagssplitfrom, filenumber = splitthis.split("-")
         tagssplitfrom = tagssplitfrom.split("_")
         for tags in tagstoadd:
-            print(tagssplitfrom)
             doublechecktags(tags, tagssplitfrom)
-            print("after",temptaglist)
     else:
         tagssplitfrom = splitthis
         filenumber = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+"z"
-    print(temptaglist)
     tagssplitfrom.sort()
     stringedlist = "".join(tagssplitfrom)
     global reformedfilename
     reformedfilename = stringedlist + "-" + filenumber + file_ext
 
 def rename_files_prompt():
-    print("general")
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
     tagassign()
-    print(rightfiles)
     tags = '_'.join(tagstoadd)
     for file in rightfiles:
         if file.endswith(suffix):
@@ -60,6 +56,7 @@ def rename_files_prompt():
             new_file_path = os.path.join(new_folder_path, file_name)
             os.rename(os.path.join(thisfolder, file), new_file_path)
 
+filepaths = []
 
 #select folder for finding the right files (unsorted pics)
 def dothesearch():
@@ -67,10 +64,10 @@ def dothesearch():
     thisfolder = os.path.abspath(filedialog.askdirectory())
     files = os.listdir(thisfolder)
     for file in files: #split the filename apart
-        file_path = os.path.join(thisfolder, file)
         if file.endswith(suffix):
+            file_path = os.path.join(thisfolder, file)
+            filepaths.append(file_path)
             rightfiles.append(file)
-            print(rightfiles, "here")
             archived.append(file_path)
 
 def renameselected():
@@ -82,7 +79,6 @@ def renameselected():
     for file in templist:
         sort_tags(file)
         new_file_path = os.path.join(thisfolder, reformedfilename)
-        print(new_file_path)
         os.rename(os.path.join(thisfolder, file), new_file_path)
     buttonnames.clear()
     #makegridframe()
@@ -112,7 +108,6 @@ def originalrenameselected(): ###perhaps to be unused
     templist.clear()
 
 def makegridframe():
-    print("ye")
     global newpage
     currentpage = 1
     newpage = "page"+str(currentpage)
@@ -120,6 +115,7 @@ def makegridframe():
     newpage.pack()
 
 
+            
 #for adding pics to the grid
 def taddtogrid():
     tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
@@ -129,11 +125,22 @@ def taddtogrid():
     rowx = 0
     coly = 0
     if len(rightfiles) > 0:
-        for rowx in range(9):
-            for coly in range(9):
+        for rowx in range(3):
+            for coly in range(3):
                 if len(rightfiles) != 0:
+                    n=0
+                    print(filepaths[0])
+                    n+=1
+                    resize1 = Image.open(filepaths[0])
+                    resize_image = resize1.resize((100,100))
+                    currentimage = ImageTk.PhotoImage(resize_image)
+                    #currentimage = currentimage+str(n+1)
+                    filepaths.pop(0)
+                    label = Label(image=currentimage)
+                    label.image = currentimage # keep a reference!
+                    label.pack()
                     thetext = rightfiles[0]
-                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), text=thetext).grid(row=rowx, column=coly, ipady=50,sticky='nsew')
+                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), image=currentimage).grid(row=rowx, column=coly,sticky='nsew')
                     rightfiles.pop(0)
                 else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=50,ipady=50)
                 coly += 1
@@ -155,7 +162,7 @@ def addtogrid(): #original
                 filep1 = Image.open(str(rightfiles.pop()))
                 rightfiles.remove(file)
                 filep2 = filep1.thumbnail(maxsize)
-                filep3 = ImageTk.PhotoImage(filep1)
+                filep3 = ImageTk.PhotoImage(Image.open(filep1))
                 #filep4 to be 1st, 2nd, etc'rd from list
                 filep4 = Label(maingridsection, image=filep3)
                 filep4.image = filep3
@@ -205,11 +212,9 @@ buttonoptions.pack()
 def clearpreviousname():
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    print(rightfiles)
     for file in rightfiles:
         filename, file_ext = os.path.splitext(file)
         if (len(filename)!=6 or filename[-6] != '-' or filename[-1] != 'z'):
-            print("else", filename)
             filename = '-'+''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+'z'
             filename = filename+file_ext
             new_file_path = os.path.join(new_folder_path, filename)
@@ -217,7 +222,6 @@ def clearpreviousname():
     rightfiles.clear()
 
 def tagassign():
-    print("tagged")
     global tagstoadd
     tagstoadd = []
     global tag1, tag2, tag3, tag4, tag5
