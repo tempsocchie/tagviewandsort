@@ -125,8 +125,8 @@ def taddtogrid():
     rowx = 0
     coly = 0
     if len(rightfiles) > 0:
-        for rowx in range(3):
-            for coly in range(3):
+        for rowx in range(9):
+            for coly in range(9):
                 if len(rightfiles) != 0:
                     n=0
                     print(filepaths[0])
