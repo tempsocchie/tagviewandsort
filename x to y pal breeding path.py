@@ -1,4 +1,4 @@
-succy says: need to combinations.txt too
+#sochhie says: need to combinations.txt too
 parent1 = "1" #what pal you already have with good passive skills
 parent2 = "2" #another pal you already have with good p skills, makes things a lil less accurate
 original = "3" #what Pal you want to transfer passive skills to
