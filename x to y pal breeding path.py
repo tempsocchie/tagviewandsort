@@ -1,6 +1,7 @@
-parent1 = "Kativa" #what pal you already have
-parent2 = "Lamball" #another pal you already have
-original = "Pyrin" #what you want to transfer p skills to
+succy says: need to combinations.txt too
+parent1 = "1" #what pal you already have with good passive skills
+parent2 = "2" #another pal you already have with good p skills, makes things a lil less accurate
+original = "3" #what Pal you want to transfer passive skills to
 origin = original
 originadd = "="+origin+"'"
 position1 = 0
