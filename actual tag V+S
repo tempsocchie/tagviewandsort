@@ -13,6 +13,8 @@ root.state('zoomed')
 archived = []
 rightfiles = []
 suffix = ("jpg", "png", "gif", "ppm", "pgm")
+testlist = []
+templist = []
 
 def gettestcoords(button_press):
     templist.append(button_press)
@@ -70,21 +72,16 @@ def dothesearch():
             rightfiles.append(file)
             archived.append(file_path)
 
-def renameselected():
-    tagassign()
+def renameselected(): #selective tagging bullshit
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    #newpage.forget()
-
+    tagassign()
+    tags = '_'.join(tagstoadd)
     for file in templist:
-        sort_tags(file)
-        new_file_path = os.path.join(thisfolder, reformedfilename)
-        os.rename(os.path.join(thisfolder, file), new_file_path)
-    buttonnames.clear()
-    #makegridframe()
-    #for rowx in range(9):
-    #    for coly in range(7):
-    #        Button(newpage).grid(row=rowx, column=coly, ipadx=50, ipady=50)
+        if file.endswith(suffix):
+            file_name = tags+file
+            new_file_path = os.path.join(new_folder_path, file_name)
+            os.rename(os.path.join(thisfolder, file), new_file_path)
     templist.clear()
 
 def originalrenameselected(): ###perhaps to be unused
@@ -182,7 +179,6 @@ def addtogrid(): #original
 #test grid making/swapping
 testarchived={}
 buttonnames=[]
-templist = []
 
 def makeagrid():
     testlist = []
