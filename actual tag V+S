@@ -78,10 +78,11 @@ def renameselected(): #selective tagging bullshit
     tagassign()
     tags = '_'.join(tagstoadd)
     for file in templist:
-        if file.endswith(suffix):
-            file_name = tags+file
-            new_file_path = os.path.join(new_folder_path, file_name)
-            os.rename(os.path.join(thisfolder, file), new_file_path)
+        tempfilenamesplit = os.path.split(file)
+        print(file)
+        file_name = tags+file
+        new_file_path = os.path.join(new_folder_path, file_name)
+        os.rename(os.path.join(thisfolder, file), new_file_path)
     templist.clear()
 
 def originalrenameselected(): ###perhaps to be unused
@@ -139,7 +140,7 @@ def taddtogrid():
                     thetext = rightfiles[0]
                     thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), image=currentimage).grid(row=rowx, column=coly,sticky='nsew')
                     rightfiles.pop(0)
-                else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=50,ipady=50)
+                else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=1,ipady=1)
                 coly += 1
         rowx += 1
         coly = 0
@@ -187,12 +188,18 @@ def makeagrid():
             currentbutton = ("p1"+str(tr)+str(tc))
             testlist.append(currentbutton)
             currentbutton = Button(newpage, command=lambda m=currentbutton: gettestcoords(m), text=currentbutton)
-            currentbutton.grid(row=tr, column=tc, ipadx=50, ipady=50)
+            currentbutton.grid(row=tr, column=tc, ipadx=1, ipady=1)
 
 nestedgrid = Frame(width=800, height=500)
 nestedgrid.pack(side=RIGHT)
-searchbar = Frame(root)
-searchbar.pack(side=LEFT)
+lroot = Frame(root)
+lroot.pack(side=LEFT)
+with open('bigtaglist.txt') as f:
+    readed = f.read()
+    prevtags = tk.Button(lroot,text=readed)
+    prevtags.pack(side=TOP)
+searchbar = Frame(lroot)
+searchbar.pack(side=BOTTOM)
 
 ##### entry widgets/ #####
 etag1 = tk.Entry(searchbar, width=30)
@@ -204,7 +211,8 @@ for c in sorted(searchbar.children):
     searchbar.children[c].pack()
 buttonoptions = Frame(searchbar)
 buttonoptions.pack()
-
+    
+    
 def clearpreviousname():
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
@@ -223,7 +231,41 @@ def tagassign():
     global tag1, tag2, tag3, tag4, tag5
     tag1, tag2, tag3, tag4, tag5 = etag1.get(), etag2.get(), etag3.get(), etag4.get(), etag5.get()
     tagstoadd.extend([tag1, tag2, tag3, tag4, tag5])
-
+    with open('bigtaglist.txt') as f:
+        bigtaglist = f.read().splitlines()
+        entrystring1 = str(etag1)
+        entrystring2 = str(etag2)
+        entrystring3 = str(etag3)
+        entrystring4 = str(etag4)
+        entrystring5 = str(etag5)
+        if not str(etag1) in bigtaglist:
+            print(str(etag1))
+            if not entrystring1.endswith("entry"):
+                bigtaglist.append(etag1)
+        if not str(etag2) in bigtaglist:
+            print(str(etag2))
+            if not str(etag2).endswith("entry2"):
+                print(entrystring2)
+                bigtaglist.append(etag2)
+        if not str(etag3) in bigtaglist:
+            print(str(etag3))
+            if not str(etag3).endswith("entry3"):
+                print(entrystring3)
+                bigtaglist.append(etag3)
+        if not str(etag4) in bigtaglist:
+            print(str(etag4))
+            if not str(etag4).endswith("entry4"):
+                print(entrystring4)
+                bigtaglist.append(etag4)
+        if not str(etag5) in bigtaglist:
+            print(str(etag5))
+            if not str(etag5).endswith("entry5"):
+                print(entrystring5)
+                bigtaglist.append(etag5)
+        print(bigtaglist)
+    with open('bigtaglist.txt','w') as f:
+        f.write(str(bigtaglist))
+    ##halp mainly before if able##
 
 ### the actual buttons ###
 for r in range(5):
