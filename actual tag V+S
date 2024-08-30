@@ -5,20 +5,20 @@ from tkinter import *
 import tkinter as tk
 import tkinter as ttk
 from tkinter import filedialog
-from PIL import ImageTk, Image
+#from PIL import ImageTk, Image
 from tkinter.ttk import *
 
 root = Tk() ############################################################################################################
 root.state('zoomed')
 archived = []
 rightfiles = []
-suffix = ("jpg", "png", "gif", "ppm", "pgm")
-testlist = []
-templist = []
-
+tagstoadd = []
+suffix = ("jpg", "png", "gif", "jpeg")
+def resettaglist():
+    print(tagstoadd)
+    del tagstoadd[:]
 def gettestcoords(button_press):
     templist.append(button_press)
-    print(button_press)
 
 ###############
 # tag sorting #
@@ -29,10 +29,12 @@ def doublechecktags(thetag, tagssplitfrom):
         if thetag != "":
             thetag ="_"+thetag
             tagssplitfrom.append(thetag)
+    if thetag not in prevtags:
+        prevtags.append(thetag)
+        with open('previoustags.txt', 'w') as f:
+            f.write(prevtags)
 
 def sort_tags(splitthis):
-    global temptaglist
-    temptaglist=[]
     splitthis, file_ext = os.path.splitext(splitthis)
     if splitthis.endswith('z'):
         tagssplitfrom, filenumber = splitthis.split("-")
@@ -66,23 +68,22 @@ def dothesearch():
     thisfolder = os.path.abspath(filedialog.askdirectory())
     files = os.listdir(thisfolder)
     for file in files: #split the filename apart
+        file_path = os.path.join(thisfolder, file)
+        filepaths.append(file_path)
         if file.endswith(suffix):
-            file_path = os.path.join(thisfolder, file)
-            filepaths.append(file_path)
             rightfiles.append(file)
             archived.append(file_path)
 
-def renameselected(): #selective tagging bullshit
+def renameselected():
+    tagassign()
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    tagassign()
-    tags = '_'.join(tagstoadd)
+
     for file in templist:
-        tempfilenamesplit = os.path.split(file)
-        print(file)
-        file_name = tags+file
-        new_file_path = os.path.join(new_folder_path, file_name)
+        sort_tags(file)
+        new_file_path = os.path.join(thisfolder, reformedfilename)
         os.rename(os.path.join(thisfolder, file), new_file_path)
+    buttonnames.clear()
     templist.clear()
 
 def originalrenameselected(): ###perhaps to be unused
@@ -113,7 +114,6 @@ def makegridframe():
     newpage.pack()
 
 
-            
 #for adding pics to the grid
 def taddtogrid():
     tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
@@ -126,21 +126,12 @@ def taddtogrid():
         for rowx in range(9):
             for coly in range(9):
                 if len(rightfiles) != 0:
-                    n=0
-                    print(filepaths[0])
-                    n+=1
-                    resize1 = Image.open(filepaths[0])
-                    resize_image = resize1.resize((100,100))
-                    currentimage = ImageTk.PhotoImage(resize_image)
-                    #currentimage = currentimage+str(n+1)
-                    filepaths.pop(0)
-                    label = Label(image=currentimage)
-                    label.image = currentimage # keep a reference!
-                    label.pack()
+                    currentimage = tk.PhotoImage(file=filepaths[0])
+                    filepaths.pop()
                     thetext = rightfiles[0]
-                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), image=currentimage).grid(row=rowx, column=coly,sticky='nsew')
+                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), image=currentimage).grid(row=rowx, column=coly, ipady=50,sticky='nsew')
                     rightfiles.pop(0)
-                else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=1,ipady=1)
+                else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=50,ipady=50)
                 coly += 1
         rowx += 1
         coly = 0
@@ -160,7 +151,7 @@ def addtogrid(): #original
                 filep1 = Image.open(str(rightfiles.pop()))
                 rightfiles.remove(file)
                 filep2 = filep1.thumbnail(maxsize)
-                filep3 = ImageTk.PhotoImage(Image.open(filep1))
+                filep3 = ImageTk.PhotoImage(filep1)
                 #filep4 to be 1st, 2nd, etc'rd from list
                 filep4 = Label(maingridsection, image=filep3)
                 filep4.image = filep3
@@ -180,6 +171,7 @@ def addtogrid(): #original
 #test grid making/swapping
 testarchived={}
 buttonnames=[]
+templist = []
 
 def makeagrid():
     testlist = []
@@ -188,18 +180,31 @@ def makeagrid():
             currentbutton = ("p1"+str(tr)+str(tc))
             testlist.append(currentbutton)
             currentbutton = Button(newpage, command=lambda m=currentbutton: gettestcoords(m), text=currentbutton)
-            currentbutton.grid(row=tr, column=tc, ipadx=1, ipady=1)
+            currentbutton.grid(row=tr, column=tc, ipadx=50, ipady=50)
+
+def gettag(thistag):
+    if thistag not in tagstoadd:
+        tagstoadd.append(thistag)
+    print(tagstoadd)
 
 nestedgrid = Frame(width=800, height=500)
 nestedgrid.pack(side=RIGHT)
-lroot = Frame(root)
-lroot.pack(side=LEFT)
-with open('bigtaglist.txt') as f:
-    readed = f.read()
-    prevtags = tk.Button(lroot,text=readed)
-    prevtags.pack(side=TOP)
-searchbar = Frame(lroot)
+taggingboxes = Frame(root)
+taggingboxes.pack(side=LEFT)
+searchbar = Frame(taggingboxes)
+prevtagbutts = Frame(taggingboxes)
+prevtagbutts.pack(side=TOP)
 searchbar.pack(side=BOTTOM)
+
+with open('previoustags.txt') as f:
+    prevtags = f.read()
+    prevtags = prevtags.split()
+    for r in range(10):
+        for c in range(3):
+            if len(prevtags) != 0:
+                thetagtext = prevtags[0]
+                prevtags.pop(0)
+                thetagtext = Button(prevtagbutts, text=thetagtext, command=lambda m=thetagtext: gettag(m)).grid(row=r, column=c,sticky='nsew')
 
 ##### entry widgets/ #####
 etag1 = tk.Entry(searchbar, width=30)
@@ -211,14 +216,14 @@ for c in sorted(searchbar.children):
     searchbar.children[c].pack()
 buttonoptions = Frame(searchbar)
 buttonoptions.pack()
-    
-    
+
 def clearpreviousname():
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
     for file in rightfiles:
         filename, file_ext = os.path.splitext(file)
         if (len(filename)!=6 or filename[-6] != '-' or filename[-1] != 'z'):
+            print("else", filename)
             filename = '-'+''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+'z'
             filename = filename+file_ext
             new_file_path = os.path.join(new_folder_path, filename)
@@ -226,46 +231,27 @@ def clearpreviousname():
     rightfiles.clear()
 
 def tagassign():
-    global tagstoadd
-    tagstoadd = []
     global tag1, tag2, tag3, tag4, tag5
     tag1, tag2, tag3, tag4, tag5 = etag1.get(), etag2.get(), etag3.get(), etag4.get(), etag5.get()
     tagstoadd.extend([tag1, tag2, tag3, tag4, tag5])
-    with open('bigtaglist.txt') as f:
-        bigtaglist = f.read().splitlines()
-        entrystring1 = str(etag1)
-        entrystring2 = str(etag2)
-        entrystring3 = str(etag3)
-        entrystring4 = str(etag4)
-        entrystring5 = str(etag5)
-        if not str(etag1) in bigtaglist:
-            print(str(etag1))
-            if not entrystring1.endswith("entry"):
-                bigtaglist.append(etag1)
-        if not str(etag2) in bigtaglist:
-            print(str(etag2))
-            if not str(etag2).endswith("entry2"):
-                print(entrystring2)
-                bigtaglist.append(etag2)
-        if not str(etag3) in bigtaglist:
-            print(str(etag3))
-            if not str(etag3).endswith("entry3"):
-                print(entrystring3)
-                bigtaglist.append(etag3)
-        if not str(etag4) in bigtaglist:
-            print(str(etag4))
-            if not str(etag4).endswith("entry4"):
-                print(entrystring4)
-                bigtaglist.append(etag4)
-        if not str(etag5) in bigtaglist:
-            print(str(etag5))
-            if not str(etag5).endswith("entry5"):
-                print(entrystring5)
-                bigtaglist.append(etag5)
-        print(bigtaglist)
-    with open('bigtaglist.txt','w') as f:
-        f.write(str(bigtaglist))
-    ##halp mainly before if able##
+
+tempfolderpath = 'C:\me\Documents\My Pictures\temp folder'
+def tagsearch():
+    thismainfolder = filedialog.askdirectory()
+    for root, dirs, files in os.walk(thismainfolder):
+        for name in files:
+            currentfilepath = os.path.abspath(name)
+            tempsplitthis, file_ext = os.path.splitext(name)
+            tempsplitcheck, filenumber = tempsplitthis.split("-")
+            tempsplitcheck = tempsplitcheck.split("_")
+            for name in tempsplitcheck:
+                if name in tagstoadd:
+                    shutil.copyfile(currentfilepath, tempfolderpath)
+
+def emptytempfolder():
+    os.chdir(tempfolderpath)
+    for file in os.listdir(tempfoldpath):
+        os.unlink(file)
 
 ### the actual buttons ###
 for r in range(5):
@@ -275,7 +261,9 @@ for r in range(5):
         tk.Button(buttonoptions, text="make plain grid", command=makeagrid).grid(row=1, column=0, sticky='we')
         tk.Button(buttonoptions, text="tag all files", command=lambda:[dothesearch(),rename_files_prompt()]).grid(row=1, column=1, sticky='we')
         tk.Button(buttonoptions, text="clear name", command=lambda:[dothesearch(),clearpreviousname()]).grid(row=2, column=0, sticky='we')
-        tk.Button(buttonoptions, text="unused", command=lambda:[print(rightfiles)]).grid(row=2, column=1, sticky='we')
+        tk.Button(buttonoptions, text="empty tag list", command=resettaglist).grid(row=2, column=1, sticky='we')
+        tk.Button(buttonoptions, text="search for tags", command=tagsearch).grid(row=3, column=0, sticky='we')
+        tk.Button(buttonoptions, text="empty temp folder", command=emptytempfolder).grid(row=3, column=1, sticky='we')
         tk.Button(buttonoptions).grid(row=r, column=c, sticky='we')
 #def rescalepic(imgdim):
 #    eitherdim = [50]
@@ -314,7 +302,7 @@ def go_right():
         currentpage = newpage
         currentpage.pack()
 
-def grid_select_buttons(): #the left/right buttons
+def grid_select_buttons(): #the left/right buttons, currently unused
     leftright_frame = Frame() #maingridsection
     leftright_frame.pack(side='bottom')
     left_select = Button(leftright_frame, bg='grey', text = "left", command=go_left)
