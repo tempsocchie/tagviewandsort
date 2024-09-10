@@ -18,8 +18,9 @@ suffix = ("jpg", "png", "gif", "jpeg")
 def resettaglist():
     del tagstoadd[:]
 def gettestcoords(button_press):
-    print("aye")
-    templist.append(button_press)
+    if button_press not in templist:
+        templist.append(button_press)
+    print(templist)
 
 ###############
 # tag sorting #
@@ -33,6 +34,7 @@ def doublechecktags(thetag, tagssplitfrom):
     if thetag not in prevtags:
         prevtags.append(thetag)
         with open('previoustags.txt', 'w') as f:
+            prevtags = str(prevtags)
             f.write(prevtags)
 
 def sort_tags(splitthis):
@@ -45,8 +47,10 @@ def sort_tags(splitthis):
     else:
         tagssplitfrom = splitthis
         filenumber = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+"z"
+    tagssplitfrom = tagssplitfrom.split("_")
+    print(tagssplitfrom)
     tagssplitfrom.sort()
-    stringedlist = "".join(tagssplitfrom)
+    stringedlist = "_".join(tagssplitfrom)
     global reformedfilename
     reformedfilename = stringedlist + "-" + filenumber + file_ext
 
