@@ -4,8 +4,9 @@ import tkinter
 from tkinter import *
 import tkinter as tk
 import tkinter as ttk
+from tkinter.ttk import *
 from tkinter import filedialog
-#from PIL import ImageTk, Image
+from PIL import ImageTk, Image
 from tkinter.ttk import *
 
 root = Tk() ############################################################################################################
@@ -15,9 +16,9 @@ rightfiles = []
 tagstoadd = []
 suffix = ("jpg", "png", "gif", "jpeg")
 def resettaglist():
-    print(tagstoadd)
     del tagstoadd[:]
 def gettestcoords(button_press):
+    print("aye")
     templist.append(button_press)
 
 ###############
@@ -66,13 +67,14 @@ filepaths = []
 def dothesearch():
     global thisfolder
     thisfolder = os.path.abspath(filedialog.askdirectory())
+    print("1", thisfolder)
     files = os.listdir(thisfolder)
     for file in files: #split the filename apart
         file_path = os.path.join(thisfolder, file)
         filepaths.append(file_path)
         if file.endswith(suffix):
             rightfiles.append(file)
-            archived.append(file_path)
+            archived.append(file_path) #unused as of 10/09/24
 
 def renameselected():
     tagassign()
@@ -116,20 +118,30 @@ def makegridframe():
 
 #for adding pics to the grid
 def taddtogrid():
+    #os.chdir(thisfolder) added 10/09/24, unused since
     tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
     newtestbutton = Button(buttonoptions, text="spec tagging", command=renameselected)
     newtestbutton.grid(row=3, column=0, sticky='we')
-    #makegridframe()
+    #makegridframe() unused as of 10/09/24
     rowx = 0
     coly = 0
     if len(rightfiles) > 0:
-        for rowx in range(9):
-            for coly in range(9):
+        for rowx in range(5):
+            for coly in range(5):
                 if len(rightfiles) != 0:
-                    currentimage = tk.PhotoImage(file=filepaths[0])
-                    filepaths.pop()
+                    n=0
+                    print(filepaths[0])
+                    n+=1
+                    resize1 = Image.open(filepaths[0])
+                    resize_image = resize1.resize((100,100))
+                    currentimage = ImageTk.PhotoImage(resize_image)
+                    #currentimage = currentimage+str(n+1)
+                    filepaths.pop(0)
+                    label = Label(image=currentimage)
+                    label.image = currentimage # keep a reference!
+                    label.pack()
                     thetext = rightfiles[0]
-                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), image=currentimage).grid(row=rowx, column=coly, ipady=50,sticky='nsew')
+                    thetext = Button(nestedgrid, command=lambda m=thetext: gettestcoords(m), image=currentimage).grid(row=rowx, column=coly,sticky='nsew')
                     rightfiles.pop(0)
                 else: Button(nestedgrid).grid(row=rowx,column=coly,ipadx=50,ipady=50)
                 coly += 1
@@ -185,7 +197,6 @@ def makeagrid():
 def gettag(thistag):
     if thistag not in tagstoadd:
         tagstoadd.append(thistag)
-    print(tagstoadd)
 
 nestedgrid = Frame(width=800, height=500)
 nestedgrid.pack(side=RIGHT)
@@ -223,7 +234,6 @@ def clearpreviousname():
     for file in rightfiles:
         filename, file_ext = os.path.splitext(file)
         if (len(filename)!=6 or filename[-6] != '-' or filename[-1] != 'z'):
-            print("else", filename)
             filename = '-'+''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+'z'
             filename = filename+file_ext
             new_file_path = os.path.join(new_folder_path, filename)
