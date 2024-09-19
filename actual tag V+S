@@ -6,10 +6,12 @@ import tkinter as tk
 import tkinter as ttk
 from tkinter.ttk import *
 from tkinter import filedialog
-from PIL import ImageTk, Image
 from tkinter.ttk import *
 
 root = Tk() ############################################################################################################
+stringedtemplist = StringVar()
+displaycurrenttags = Label(root,textvariable=stringedtemplist, padding=20, font=(40))
+displaycurrenttags.pack(anchor=tk.NW)
 root.state('zoomed')
 archived = []
 rightfiles = []
@@ -20,7 +22,8 @@ def resettaglist():
 def gettestcoords(button_press):
     if button_press not in templist:
         templist.append(button_press)
-    print(templist)
+    elif button_press in templist:
+        templist.remove(button_press)
 
 ###############
 # tag sorting #
@@ -34,6 +37,7 @@ def doublechecktags(thetag, tagssplitfrom):
     if thetag not in prevtags:
         prevtags.append(thetag)
         with open('previoustags.txt', 'w') as f:
+            print(f,"+", prevtags, "doublechecktags 2nd part")
             prevtags = str(prevtags)
             f.write(prevtags)
 
@@ -48,7 +52,6 @@ def sort_tags(splitthis):
         tagssplitfrom = splitthis
         filenumber = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))+"z"
     tagssplitfrom = tagssplitfrom.split("_")
-    print(tagssplitfrom)
     tagssplitfrom.sort()
     stringedlist = "_".join(tagssplitfrom)
     global reformedfilename
@@ -57,9 +60,8 @@ def sort_tags(splitthis):
 def rename_files_prompt():
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    tagassign()
     tags = '_'.join(tagstoadd)
-    for file in rightfiles:
+    for file in templist:
         if file.endswith(suffix):
             file_name = tags+file
             new_file_path = os.path.join(new_folder_path, file_name)
@@ -71,12 +73,11 @@ filepaths = []
 def dothesearch():
     global thisfolder
     thisfolder = os.path.abspath(filedialog.askdirectory())
-    print("1", thisfolder)
     files = os.listdir(thisfolder)
-    for file in files: #split the filename apart
-        file_path = os.path.join(thisfolder, file)
-        filepaths.append(file_path)
+    for file in files: #split the filename apart the fuck does "split the filename apart mean"
         if file.endswith(suffix):
+            file_path = os.path.join(thisfolder, file)
+            filepaths.append(file_path)
             rightfiles.append(file)
             archived.append(file_path) #unused as of 10/09/24
 
@@ -96,7 +97,6 @@ def originalrenameselected(): ###perhaps to be unused
     tagassign()
     new_folder_path = os.path.join(thisfolder, "Renamed_Files")
     os.makedirs(new_folder_path, exist_ok=True)
-    #newpage.forget()
 
     for file in templist:
         sort_tags(file)
@@ -124,14 +124,14 @@ def makegridframe():
 def taddtogrid():
     #os.chdir(thisfolder) added 10/09/24, unused since
     tk.Button(buttonoptions, text="set tags", command=tagassign).grid(row=0, column=1, sticky='we')
-    newtestbutton = Button(buttonoptions, text="spec tagging", command=renameselected)
+    newtestbutton = Button(buttonoptions, text="spec tagging", command=rename_files_prompt)
     newtestbutton.grid(row=3, column=0, sticky='we')
     #makegridframe() unused as of 10/09/24
     rowx = 0
     coly = 0
-    if len(rightfiles) > 0:
-        for rowx in range(5):
-            for coly in range(5):
+    if len(rightfiles) > 0: #herehere
+        for rowx in range(6):
+            for coly in range(10):
                 if len(rightfiles) != 0:
                     n=0
                     print(filepaths[0])
@@ -161,8 +161,8 @@ def addtogrid(): #original
     rowx = 0
     coly = 0
     for file in rightfiles:
-        while rowx < 9:
-            while coly < 7:
+        while rowx < 7:
+            while coly < 11:
                 filana = str(file) #should do that at least reference
                 filep1 = Image.open(str(rightfiles.pop()))
                 rightfiles.remove(file)
@@ -201,6 +201,9 @@ def makeagrid():
 def gettag(thistag):
     if thistag not in tagstoadd:
         tagstoadd.append(thistag)
+    elif thistag in tagstoadd:
+        tagstoadd.remove(thistag)
+    stringedtemplist.set(str(tagstoadd))
 
 nestedgrid = Frame(width=800, height=500)
 nestedgrid.pack(side=RIGHT)
@@ -213,13 +216,25 @@ searchbar.pack(side=BOTTOM)
 
 with open('previoustags.txt') as f:
     prevtags = f.read()
+    print("prevtags first: ", prevtags)
     prevtags = prevtags.split()
+    print("prevtags 2nd: ", prevtags)
+    print("prevtags 3rd: ", prevtags)
     for r in range(10):
         for c in range(3):
-            if len(prevtags) != 0:
-                thetagtext = prevtags[0]
-                prevtags.pop(0)
+            tagssave = prevtags
+            if len(tagssave) != 0:
+                thetagtext = tagssave[0]
+                print("prevtags: ",tagssave)
+                print("prevtags during: ", prevtags)
                 thetagtext = Button(prevtagbutts, text=thetagtext, command=lambda m=thetagtext: gettag(m)).grid(row=r, column=c,sticky='nsew')
+                tagssave.pop(0)
+
+with open('previoustags.txt') as f:
+    prevtags = f.read()
+    prevtags = prevtags.split()
+    print("real after: ", prevtags)
+
 
 ##### entry widgets/ #####
 etag1 = tk.Entry(searchbar, width=30)
@@ -244,12 +259,37 @@ def clearpreviousname():
             os.rename(os.path.join(thisfolder, file), new_file_path)
     rightfiles.clear()
 
+def addnewtagtofile(checktag):
+    print(prevtags, checktag)
+    if checktag not in prevtags:
+        with open("previoustags.txt", "a") as myfile:
+            myfile.write(" "+checktag)
+
 def tagassign():
     global tag1, tag2, tag3, tag4, tag5
     tag1, tag2, tag3, tag4, tag5 = etag1.get(), etag2.get(), etag3.get(), etag4.get(), etag5.get()
-    tagstoadd.extend([tag1, tag2, tag3, tag4, tag5])
+    tag1 = etag1.get()
+    tagstoadd.extend([tag1])
+    addnewtagtofile(tag1)
+    if len(tag2) != 0:
+        tag2 = etag2.get()
+        tagstoadd.extend([tag2])
+        addnewtagtofile(tag2)
+    if len(tag3) != 0:
+        tag2 = etag3.get()
+        tagstoadd.extend([tag3])
+        addnewtagtofile(tag3)
+    if len(tag4) != 0:
+        tag2 = etag4.get()
+        tagstoadd.extend([tag4])
+        addnewtagtofile(tag4)
+    if len(tag5) != 0:
+        tag2 = etag5.get()
+        tagstoadd.extend([tag5])
+        addnewtagtofile(tag5)
+    stringedtemplist.set(str(tagstoadd))
 
-tempfolderpath = 'C:\me\Documents\My Pictures\temp folder'
+#tempfolderpath = 'C:\me\Documents\My Pictures\temp folder'
 def tagsearch():
     thismainfolder = filedialog.askdirectory()
     for root, dirs, files in os.walk(thismainfolder):
